@@ -1,0 +1,39 @@
+@font-face {
+    font-family: 'EuclidFlex-Bold';
+    src: url('./fonts/EuclidFlex-Bold.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'EuclidFlex-Medium';
+    src: url('./fonts/EuclidFlex-Medium.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'EuclidFlex-Light';
+    src: url('./fonts/EuclidFlex-Light.otf') format('opentype');
+}
+
+body {
+    background-color: #ECE8DE;
+    font-family: 'EuclidFlex-Light', sans-serif;
+    font-size: 1rem;
+    color: #333;
+}
+
+h1 {
+    font-family: 'EuclidFlex-Bold', sans-serif;
+    font-size: 3rem;
+    text-transform: lowercase;
+}
+
+h2 {
+    font-family: 'EuclidFlex-Medium', sans-serif;
+    font-size: 2rem;
+    text-transform: lowercase;
+}
+
+h3 {
+    font-family: 'EuclidFlex-Medium', sans-serif;
+    font-size: 1rem;
+    text-transform: uppercase;
+}
