@@ -36,7 +36,7 @@ def load_library():
         df.columns = [col.strip() for col in df.columns if col is not None]  # Fjern mellemrum i kolonnenavne
         return df
     else:
-        st.error("Library data file 'library_data.xlsx' is missing. Please upload a valid library file.")
+        st.error("Library data file 'Library_data.xlsx' is missing. Please upload a valid library file.")
         return None
 
 # Indlæs library data én gang
@@ -96,6 +96,7 @@ if uploaded_file is not None and library_df is not None:
 
         # Gør outputfilen klar til download
         output_path = "matched_data.xlsx"
-        result_df.to_excel(output_path, index=False, engine="openpyxl")
+        result_df.to_csv("debug_matched_data.csv", index=False)
+    result_df.to_excel(output_path, index=False, engine="openpyxl")
 
         st.download_button("Download the enriched file", output_path, file_name="Muuto_Matched_Item_Numbers.xlsx")
