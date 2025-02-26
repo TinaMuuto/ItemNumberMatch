@@ -29,7 +29,7 @@ This tool allows you to upload an Excel or CSV file containing item numbers and 
 
 # Funktion til at indlæse library-data
 def load_library():
-    library_file = "library_data.xlsx"  # Standard bibliotek-fil
+    library_file = "Library_data.xlsx"  # Standard bibliotek-fil
     
     if os.path.exists(library_file):
         df = pd.read_csv(library_file) if library_file.endswith('.csv') else pd.read_excel(library_file, engine='openpyxl')
