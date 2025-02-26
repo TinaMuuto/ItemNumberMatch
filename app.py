@@ -55,7 +55,7 @@ def process_uploaded_file(uploaded_file, library_df):
         with pd.ExcelFile(uploaded_file, engine="openpyxl") as xls:
             sheet_names = xls.sheet_names
             if "Article List" in sheet_names:
-                user_df = pd.read_excel(xls, sheet_name="Article List")
+                user_df = pd.read_excel(xls, sheet_name="Article List", header=1)
                 possible_columns = ["Article No."]
             else:
                 user_df = pd.read_excel(xls)
