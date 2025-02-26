@@ -1,6 +1,35 @@
 import streamlit as st
+
+# Funktion til at indlæse CSS
+def load_css():
+    with open("styles.css", "r") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+# Indlæs CSS
+load_css()
+
+# App Layout
+st.markdown("<h1>overskrift niveau 1</h1>", unsafe_allow_html=True)
+st.markdown("<h2>overskrift niveau 2</h2>", unsafe_allow_html=True)
+st.markdown("<h3>OVERSKRIFT NIVEAU 3</h3>", unsafe_allow_html=True)
+st.write("Dette er brødtekst med EuclidFlex-Light.")
+
 import pandas as pd
 import os
+
+import streamlit as st
+
+# Funktion til at indlæse CSS
+def load_css():
+    with open("styles.css", "r") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+# Indlæs CSS
+load_css()
+
+# App Layout
+st.markdown("<h1>overskrift
+
 
 def load_library():
     # Definer stier til de fire masterdatafiler
