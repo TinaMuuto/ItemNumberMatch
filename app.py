@@ -16,7 +16,6 @@ st.title("Muuto Item Number Matching Tool")
 
 # Introduktion
 st.markdown("""
-### Welcome to the Muuto Item Number Matching Tool
 This tool allows you to upload an Excel file containing item numbers and receive a file enriched with product names, colors, and item numbers across different regions.
 
 #### **How It Works**
