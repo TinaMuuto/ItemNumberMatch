@@ -33,7 +33,7 @@ def load_library():
     
     if os.path.exists(library_file):
         df = pd.read_csv(library_file) if library_file.endswith('.csv') else pd.read_excel(library_file, engine='openpyxl')
-        df.columns = [col.strip() for col in df.columns]  # Fjern mellemrum i kolonnenavne
+        df.columns = [col.strip() for col in df.columns if col is not None]  # Fjern mellemrum i kolonnenavne
         return df
     else:
         st.error("Library data file 'library_data.xlsx' is missing. Please upload a valid library file.")
