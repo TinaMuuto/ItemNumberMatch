@@ -19,7 +19,7 @@ st.markdown("""
 This tool allows you to upload an Excel or CSV file containing item numbers and receive a file enriched with product names, colors, and item numbers across different regions.
 
 #### **How It Works**
-1. **Upload a file** – The file should contain either **"Item variant number"**, **"Item no."**, or **"Article No."** (if available in "Article List" sheet).
+1. **Upload a file** – The file should contain either **"Item variant number"**, **"Item no."**, or **"Article No."** (from the "Article List" sheet, if available).
 2. **The app matches the item numbers** to Muuto's library data.
 3. **If discrepancies exist**, mismatched item numbers will be highlighted.
 4. **Download the enriched file** for further analysis.
@@ -56,17 +56,18 @@ def process_uploaded_file(uploaded_file, library_df):
             sheet_names = xls.sheet_names
             if "Article List" in sheet_names:
                 user_df = pd.read_excel(xls, sheet_name="Article List")
+                possible_columns = ["Article No."]
             else:
                 user_df = pd.read_excel(xls)
+                possible_columns = ["Item variant number", "Item no."]
     
     user_df.columns = [col.strip() for col in user_df.columns]  # Fjern mellemrum i kolonnenavne
     
     # Find den relevante kolonne til opslag, uanset store/små bogstaver
-    possible_columns = ["Item variant number", "Item no.", "Article No."]
     match_column = next((col for col in user_df.columns if col.lower() in [pc.lower() for pc in possible_columns]), None)
 
     if match_column is None:
-        st.error("The uploaded file must contain either 'Item variant number', 'Item no.', or 'Article No.' as a column.")
+        st.error("The uploaded file must contain either 'Item variant number', 'Item no.', or 'Article No.' (from 'Article List' sheet).")
         return None
 
     # Sikre at 'Item No. EUR' findes i library_df
@@ -74,7 +75,7 @@ def process_uploaded_file(uploaded_file, library_df):
         st.error("The library data file is missing the 'Item No. EUR' column. Please check the file format.")
         return None
 
-    # Merge med library data kun baseret på 'PRODUCT' (da det er unikt)
+    # Merge med library data kun baseret på 'Item No. EUR'
     merged_df = pd.merge(user_df, library_df, how="left", left_on=match_column, right_on="Item No. EUR")
 
     # Fremhæv mismatches (kun mellem EUR, APMEA, og GBP)
