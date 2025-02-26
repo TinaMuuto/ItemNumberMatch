@@ -37,3 +37,13 @@ h3 {
     font-size: 1rem;
     text-transform: uppercase;
 }
+
+/* Sikrer at baggrundsfarven gælder for hele appen */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
+    background-color: #ECE8DE !important;
+}
+
+/* Sikrer at hovedindholdet også får baggrundsfarven */
+[data-testid="stSidebarContent"], [data-testid="stContent"] {
+    background-color: #ECE8DE !important;
+}
