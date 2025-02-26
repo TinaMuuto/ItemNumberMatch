@@ -49,9 +49,10 @@ def load_library():
     for region, path in file_paths.items():
         if os.path.exists(path):
             df = pd.read_excel(path)
-            expected_cols = ["ITEM NO.", "PRODUCT", "COLOR"]
-            df = df[[col for col in expected_cols if col in df.columns]].copy()
-            df.rename(columns={"ITEM NO.": f"Item No. {region}"}, inplace=True)
+            df.columns = [col.strip() for col in df.columns]  # Fjern mellemrum i kolonnenavne
+            item_no_column = "PATTERN NO." if region == "US" else "ITEM NO."
+            df = df[[item_no_column, "PRODUCT", "COLOR"]].copy()
+            df.rename(columns={item_no_column: f"Item No. {region}"}, inplace=True)
             dfs.append(df)
     
     # Hvis ingen masterdatafiler findes, returnér fejl
@@ -68,9 +69,12 @@ def load_library():
     library_df.rename(columns={"PRODUCT": "Product", "COLOR": "Color"}, inplace=True)
     
     # Tilføj kolonne til at markere inkonsistens mellem item numre
-    library_df["Item No. Consistency"] = library_df.apply(
-        lambda row: "Mismatch" if len(set([row.get("Item No. EUR"), row.get("Item No. APMEA"), row.get("Item No. GBP"), row.get("Item No. US")])) > 1 else "Match", axis=1
-    )
+    def check_match(row):
+        item_numbers = {row.get(f"Item No. {region}") for region in file_paths.keys()}
+        item_numbers.discard(None)  # Fjern None-værdier
+        return "Match" if len(item_numbers) == 1 else "Mismatch"
+    
+    library_df["Item No. Consistency"] = library_df.apply(check_match, axis=1)
     
     # Gem biblioteket
     library_df.to_excel(master_file, index=False)
