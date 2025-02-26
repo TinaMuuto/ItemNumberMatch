@@ -4,8 +4,9 @@ import os
 
 # Funktion til at indlæse CSS
 def load_css():
-    with open("styles.css", "r") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    if os.path.exists("styles.css"):
+        with open("styles.css", "r") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 # Indlæs CSS
 load_css()
@@ -27,21 +28,62 @@ This tool allows you to upload an Excel file containing item numbers and receive
 ---
 """)
 
-# File upload section
-st.header("Upload Your File")
-uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"], key="user_upload")
-
-# Funktion til at indlæse masterdata
+# Funktion til at oprette eller indlæse masterdata
 def load_library():
     master_file = "library_data.xlsx"
+    file_paths = {
+        "EUR": "Muuto_Master_Data_CON_January_2025_EUR_IE.xlsx",
+        "APMEA": "Muuto_Master_Data_NET_Janaury_2025_APMEA.xlsx",
+        "GBP": "Muuto_Master_Data_CON_January_2025_GBP.xlsx",
+        "US": "Muuto_Master_Data_Contract_USD_January_2025.xlsx",
+    }
+    
+    # Hvis biblioteket allerede findes, indlæs det
     if os.path.exists(master_file):
         return pd.read_excel(master_file)
-    else:
-        st.error("Master data is missing. Please ensure the backend contains 'library_data.xlsx'.")
+    
+    # Initialiser en liste til dataframes
+    dfs = []
+    
+    # Indlæs data fra hver fil
+    for region, path in file_paths.items():
+        if os.path.exists(path):
+            df = pd.read_excel(path)
+            expected_cols = ["ITEM NO.", "PRODUCT", "COLOR"]
+            df = df[[col for col in expected_cols if col in df.columns]].copy()
+            df.rename(columns={"ITEM NO.": f"Item No. {region}"}, inplace=True)
+            dfs.append(df)
+    
+    # Hvis ingen masterdatafiler findes, returnér fejl
+    if not dfs:
+        st.error("No master data files found. Please upload them to generate the library.")
         return None
+    
+    # Flet dataene baseret på "PRODUCT" og "COLOR"
+    library_df = dfs[0]
+    for df in dfs[1:]:
+        library_df = pd.merge(library_df, df, on=["PRODUCT", "COLOR"], how="outer")
+    
+    # Omdøb kolonner
+    library_df.rename(columns={"PRODUCT": "Product", "COLOR": "Color"}, inplace=True)
+    
+    # Tilføj kolonne til at markere inkonsistens mellem item numre
+    library_df["Item No. Consistency"] = library_df.apply(
+        lambda row: "Mismatch" if len(set([row.get("Item No. EUR"), row.get("Item No. APMEA"), row.get("Item No. GBP"), row.get("Item No. US")])) > 1 else "Match", axis=1
+    )
+    
+    # Gem biblioteket
+    library_df.to_excel(master_file, index=False)
+    
+    st.success("Master data library has been created successfully.")
+    return library_df
 
 # Indlæs masterdata én gang
 library_df = load_library()
+
+# File upload section
+st.header("Upload Your File")
+uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"], key="user_upload")
 
 # Funktion til at matche item numre
 def process_uploaded_file(uploaded_file, library_df):
