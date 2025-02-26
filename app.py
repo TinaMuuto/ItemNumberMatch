@@ -98,7 +98,7 @@ if uploaded_file is not None and library_df is not None:
         output_path = "matched_data.xlsx"
         st.write("Result dataframe shape:", result_df.shape)
     result_df.to_csv("debug_matched_data.csv", index=False)
-        with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+            with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
         result_df.to_excel(writer, index=False)
 
         st.download_button("Download the enriched file", output_path, file_name="Muuto_Matched_Item_Numbers.xlsx")
