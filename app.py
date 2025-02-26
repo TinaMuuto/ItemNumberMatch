@@ -29,7 +29,7 @@ This tool allows you to upload an Excel or CSV file containing item numbers and 
 
 # Funktion til at indlæse library-data
 def load_library():
-    library_file = "Library_data.xlsx"  # Standard bibliotek-fil
+    library_file = "library_data.xlsx"  # Standard bibliotek-fil
     
     if os.path.exists(library_file):
         df = pd.read_csv(library_file) if library_file.endswith('.csv') else pd.read_excel(library_file, engine='openpyxl')
@@ -96,6 +96,6 @@ if uploaded_file is not None and library_df is not None:
 
         # Gør outputfilen klar til download
         output_path = "matched_data.xlsx"
-        result_df.to_excel(output_path, index=False)
+        result_df.to_excel(output_path, index=False, engine="openpyxl")
 
         st.download_button("Download the enriched file", output_path, file_name="Muuto_Matched_Item_Numbers.xlsx")
