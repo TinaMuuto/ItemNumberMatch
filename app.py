@@ -71,7 +71,7 @@ def process_uploaded_file(uploaded_file, library_df):
         return None
 
     # Sikre at 'Item No. EUR' findes i library_df
-    if "Item No. EUR" not in library_df.columns:
+    if not any(col.strip().lower() == "item no. eur" for col in library_df.columns):
         st.error("The library data file is missing the 'Item No. EUR' column. Please check the file format.")
         return None
 
