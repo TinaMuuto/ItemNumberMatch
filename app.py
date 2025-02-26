@@ -10,93 +10,67 @@ def load_css():
 # Indlæs CSS
 load_css()
 
-# Streamlit UI
-st.title("Item Lookup App")
+# App Title
+st.title("Muuto Item Number Matching Tool")
 
-# Vis eksempler på formatering
-st.markdown("<h1>overskrift niveau 1</h1>", unsafe_allow_html=True)
-st.markdown("<h2>overskrift niveau 2</h2>", unsafe_allow_html=True)
-st.markdown("<h3>OVERSKRIFT NIVEAU 3</h3>", unsafe_allow_html=True)
-st.write("Dette er brødtekst med EuclidFlex-Light.")
+# Introduktion
+st.markdown("""
+### Welcome to the Muuto Item Number Matching Tool
+This tool allows you to upload an Excel file containing item numbers and receive a file enriched with product names, colors, and item numbers across different regions.
 
-# Funktion til at oprette biblioteket
+#### **How It Works**
+1. **Upload a file** – The first column should contain item numbers.
+2. **The app matches the item numbers** to Muuto's master data from Europe (EUR), Asia-Pacific & Middle East (APMEA), United Kingdom (GBP), and United States (US).
+3. **If discrepancies exist**, mismatched item numbers will be highlighted.
+4. **Download the enriched file** for further analysis.
+
+#### **Example Output**
+| Item No. (EUR) | Item No. (APMEA) | Item No. (GBP) | Item No. (US) | Product Name | Color | Item No. Consistency |
+|---------------|----------------|----------------|--------------|--------------|-------|----------------------|
+| 12345        | 12345          | 67890          | 12345        | Linear Pendant | Black | **Mismatch** |
+| 54321        | 54321          | 54321          | 54321        | Outline Sofa | Grey  | Match |
+
+---
+""")
+
+# File upload section
+st.header("Upload Your File")
+uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"], key="user_upload")
+
+# Funktion til at indlæse masterdata
 def load_library():
-    file_paths = {
-        "EUR": "Muuto_Master_Data_CON_January_2025_EUR_IE.xlsx",
-        "APMEA": "Muuto_Master_Data_NET_Janaury_2025_APMEA.xlsx",
-        "GBP": "Muuto_Master_Data_CON_January_2025_GBP.xlsx",
-        "US": "Muuto_Master_Data_Contract_USD_January_2025.xlsx",
-    }
-    
-    library_file = "library_data.xlsx"
-    if os.path.exists(library_file):
-        return pd.read_excel(library_file)
-    
-    dfs = []
-    for region, path in file_paths.items():
-        if os.path.exists(path):
-            df = pd.read_excel(path)
-            expected_cols = ["ITEM NO.", "PRODUCT", "COLOR"]
-            df = df[[col for col in expected_cols if col in df.columns]].copy()
-            df.rename(columns={"ITEM NO.": f"Item No. {region}"}, inplace=True)
-            dfs.append(df)
-    
-    if not dfs:
+    master_file = "library_data.xlsx"
+    if os.path.exists(master_file):
+        return pd.read_excel(master_file)
+    else:
+        st.error("Master data file is missing. Please contact the admin to update the backend.")
         return None
-    
-    library_df = dfs[0]
-    for df in dfs[1:]:
-        library_df = pd.merge(library_df, df, on=["PRODUCT", "COLOR"], how="outer")
-    
-    library_df.rename(columns={"PRODUCT": "Product", "COLOR": "Color"}, inplace=True)
-    
-    library_df["Item No. Consistency"] = library_df.apply(
-        lambda row: "Mismatch" if len(set([row.get("Item No. EUR"), row.get("Item No. APMEA"), row.get("Item No. GBP"), row.get("Item No. US")])) > 1 else "Match", axis=1
-    )
-    
-    library_df.to_excel(library_file, index=False)
-    
-    return library_df
 
+# Funktion til at matche item numre
 def process_uploaded_file(uploaded_file, library_df):
     user_df = pd.read_excel(uploaded_file)
     item_no_column = user_df.columns[0]
     merged_df = pd.merge(user_df, library_df, how="left", left_on=item_no_column, right_on="Item No. EUR")
+
+    # Fremhæv mismatches
+    merged_df["Item No. Consistency"] = merged_df.apply(
+        lambda row: "Mismatch" if len(set([row.get("Item No. EUR"), row.get("Item No. APMEA"), row.get("Item No. GBP"), row.get("Item No. US")])) > 1 else "Match", axis=1
+    )
+
     return merged_df
 
-# Indlæs bibliotek
+# Indlæs masterdata
 library_df = load_library()
-if library_df is None:
-    st.error("Biblioteket kunne ikke oprettes. Upload masterdata-filerne.")
-else:
-    st.success("Biblioteket er opdateret og klar til brug.")
 
-# Upload af masterdata-filer
-st.header("Opdater masterdata-biblioteket")
-file_paths = {
-    "EUR": "Muuto_Master_Data_CON_January_2025_EUR_IE.xlsx",
-    "APMEA": "Muuto_Master_Data_NET_Janaury_2025_APMEA.xlsx",
-    "GBP": "Muuto_Master_Data_CON_January_2025_GBP.xlsx",
-    "US": "Muuto_Master_Data_Contract_USD_January_2025.xlsx",
-}
-
-for region in file_paths.keys():
-    uploaded_master_file = st.file_uploader(f"Upload {region} masterdata", type=["xlsx"], key=f"upload_{region}")
-    if uploaded_master_file is not None:
-        with open(file_paths[region], "wb") as f:
-            f.write(uploaded_master_file.getbuffer())
-        st.success(f"{region} masterdata opdateret. Genstart appen for at se ændringer.")
-
-# Filupload
-st.header("Slå ITEM NO. op")
-uploaded_file = st.file_uploader("Upload en Excel-fil", type=["xlsx"], key="user_upload")
-
-if uploaded_file is not None:
+if uploaded_file is not None and library_df is not None:
     result_df = process_uploaded_file(uploaded_file, library_df)
-    st.write("Berigede data:")
+    
+    # Vis output
+    st.subheader("Enriched Data")
     st.dataframe(result_df)
     
-    output_path = "output_data.xlsx"
+    # Gør outputfilen klar til download
+    output_path = "matched_data.xlsx"
     result_df.to_excel(output_path, index=False)
     
-    st.download_button("Download resultat", output_path, file_name="matched_data.xlsx")
+    st.download_button("Download the enriched file", output_path, file_name="Muuto_Matched_Item_Numbers.xlsx")
